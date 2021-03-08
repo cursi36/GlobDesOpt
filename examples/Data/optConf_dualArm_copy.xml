@@ -1,0 +1,64 @@
+<optDesConf
+    solver="ga"> <!-- ga, pso, BayesOpt -->
+    
+    <Robot1 nj="5" origin="[0 0 0]" rpy="[0 0 0]">
+        <DH_tab_path name="DH_tab_DualArm_copy" /> 
+        <joints 
+            types="prrrr"
+            l_bounds="[0 -45 -45 -45 -45]"
+            u_bounds="[10 45 45 45 45]"/>
+        <d_idx idx="[1 2 3 4 5]"
+               l_bounds="[3 3 3 3 3]"
+               u_bounds="[25 25 25 25 25]"/>
+        <theta_idx idx="[1 2 3 4 5]"        
+                   l_bounds="[0 0 0 0 0]"
+                   u_bounds="[180 180 180 180 180]"/>
+        <a_idx idx="[1 2 3 4 5]"         
+               l_bounds="[3 3 3 3 3]"
+               u_bounds="[25 25 25 25 25]"/>
+        <alpha_idx idx="[1 2 3 4 5]"         
+                   l_bounds="[0 0 0 0 0]"
+                   u_bounds="[180 180 180 180 180]"/>
+        <jnt_idx idx="[1 2 3 4 5]"         
+                 l_p_bounds="[0 0 0 0 0]"
+                 u_p_bounds="[1 1 1 1 1]"
+                 l_r_bounds="[-45 -45 -45 -45 -45]"
+                 u_r_bounds="[45 45 45 45 45]"/>
+    </Robot1>
+    
+    <dual_arm
+        copy="true" 
+        dist_idx=""
+        l_bounds =""
+        u_bounds = ""
+        />
+        
+    <Robot2 nj="3" origin="[5 0 0]" rpy="[0 0 0]"/>
+    <!-- Robot 2 not needed as it is identical to 1
+    <Robot2 nj="3" origin="[5 0 0]" rpy="[0 0 0]">
+        <DH_tab_path name="DH_tab_DualArm_2.mat" />
+        <joints 
+            types="rrr"
+            l_bounds="[-45 -45 -45]"
+            u_bounds="[45 45 45]"/>
+        <d_idx idx="[3]"
+               l_bounds="[3]"
+               u_bounds="[25]"/>
+        <theta_idx idx=""        
+                   l_bounds=""
+                   u_bounds=""/>
+        <a_idx idx="[1]"         
+               l_bounds="[3]"
+               u_bounds="[25]"/>
+        <alpha_idx idx=""         
+                   l_bounds=""
+                   u_bounds=""/>
+        <jnt_idx idx="[2]"         
+                 l_p_bounds="[0]"
+                 u_p_bounds="[1]"
+                 l_r_bounds="[-45]"
+                 u_r_bounds="[45]"/>
+    </Robot2>
+    -->
+    
+</optDesConf>

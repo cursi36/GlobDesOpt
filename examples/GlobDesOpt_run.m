@@ -3,6 +3,8 @@
 function GlobDesOpt_run
 clear all;
 close all;
+clc;
+
 warning('off','all')
 
 addpath('../SmoothSurf')
@@ -12,7 +14,8 @@ addpath("Data/")
 %% Initializations
 % configFile = "Data/optConf_dualArm.xml"; %DualArm opt
 % configFile = "Data/optConf_singleArm.xml"; %SingleArm opt
-configFile = "Data/optConf_dualArm_copy.xml"; %DualArm copy opt
+% configFile = "Data/optConf_dualArm_copy.xml"; %DualArm copy opt
+configFile = "Data/optConf_dualArm_test.xml"; %DualArm copy opt
 [solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig(configFile);
 
 
@@ -34,7 +37,7 @@ end
 
 Robots = InitializeRobots(DH_tabs,joint_types,joint_limits,T_inits,dual_arm_copy);
 
-if solver == "BayesOpt"
+if solver.name == "BayesOpt"
     
     [optVars,Indexes] = setOptimizationVariablesBO(LinkLength_optInfos,JointType_optInfos,Distance_optInfo,dual_arm_copy);
     
@@ -45,21 +48,30 @@ else
 end
 
 %% START OPTIMIZATION
-Accept_rate = 0.6;
+Accept_rate = solver.acceptRate;
+MaxIter = solver.MaxIter;
+Npnts_WS = solver.Npnts_WS; %number of points for WS computation
+popSize = solver.popSize;
+NumSeed_BO = solver.NumSeed_BO;
 
+disp("******SOLVER Info: "+solver.name+"; MaxIter: "+num2str(MaxIter)+"; N points WS: "+num2str(Npnts_WS)+"; Accept Rate: "+num2str(Accept_rate))
+if solver.name == "BayesOpt"
+    disp("SeedPoints :"+num2str(NumSeed_BO))
+else
+    disp("Pop size: "+num2str(popSize))
+    
+end
 for i = 1:length(Accept_rate)
     close all;
     
     accept_rate = Accept_rate(i);
-    disp("*******")
-    disp("accept rate "+num2str(accept_rate))
+    disp("*******RUNNING")
     
-    Npnts_WS = 150*1e03; %number of points for WS computation
     %%minimizes function
     nvars = length(optVars);
     
     %%%%%GENETIC ALGORITHM%%%%%%%%%%%%%%%%%%
-    if solver == "ga"
+    if solver.name == "ga"
         A = [];
         b = [];
         Aeq = [];
@@ -72,22 +84,22 @@ for i = 1:length(Accept_rate)
             lb(nv) = optVars{nv}.bounds(1);
             ub(nv) = optVars{nv}.bounds(2);
         end
-        n_pop = 2;
+        n_pop = popSize;
         
         parpool;
-        options = optimoptions('ga','UseVectorized',true,'PopulationSize',n_pop,...
+        options = optimoptions('ga','Display', 'iter','UseVectorized',true,'PopulationSize',n_pop,...
             'UseParallel', true,'PlotFcn','gaplotbestf','CrossOverFcn',{'crossoverheuristic',1.2});
         options.InitialPopulationMatrix = []; %%rows = up to pop size; cols = numb of variables
-        options.MaxGenerations = 1;
+        options.MaxGenerations = MaxIter;
         options.MaxStallGenerations = 10;
         options.EliteCount = floor(0.2*n_pop);
         
-        [x,fval,exitflag,output,population,scores] = ga(@(x)costFunction(x,solver,Robots,Indexes,accept_rate,Npnts_WS,false),...
+        [x,fval,exitflag,Res,population,scores] = ga(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,A,b,Aeq,beq,lb,ub,nonlcon,IntCon,options);
         delete(gcp);
         
         %%%%%%%%%%%PSO ALGORITHM%%%%%%%%%%%%
-    elseif solver =="pso"
+    elseif solver.name =="pso"
         lb = zeros(nvars,1);
         ub = zeros(nvars,1);
         for nv = 1:nvars
@@ -95,24 +107,23 @@ for i = 1:length(Accept_rate)
             ub(nv) = optVars{nv}.bounds(2);
         end
         
-        SwarmSize = 2;
+        SwarmSize = popSize;
         parpool;
         options = optimoptions('particleswarm','SwarmSize',SwarmSize,...
-            'Display', 'off','MaxIterations',1,'MaxStallIterations',10, 'PlotFcn','pswplotbestf',...
+            'Display', 'iter','MaxIterations',MaxIter,'MaxStallIterations',10, 'PlotFcn','pswplotbestf',...
             'UseParallel',true,'UseVectorized', true);
         
-        [x,fval,exitflag,output] = particleswarm(@(x)costFunction(x,solver,Robots,Indexes,accept_rate,Npnts_WS,false),...
+        [x,fval,exitflag,Res] = particleswarm(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,lb,ub,options);
         delete(gcp);
         
         %%%%%BAYESIAN OPTIMIZATION%%%%%%%%%%%%%
-    elseif solver == "BayesOpt"
-        NumSeed = 1000;
-        Res = bayesopt(@(x)costFunction(x,solver,Robots,Indexes,accept_rate,Npnts_WS,false),...
+    elseif solver.name == "BayesOpt"
+        Res = bayesopt(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             optVars,'Verbose',0,...
             'IsObjectiveDeterministic',true,'AcquisitionFunctionName','expected-improvement-per-second-plus',...
             'ExplorationRatio',0.6,...
-            'MaxObjectiveEvaluations',1,'NumSeedPoints',NumSeed,'UseParallel',true);
+            'MaxObjectiveEvaluations',MaxIter,'NumSeedPoints',NumSeed_BO,'UseParallel',true);
         x_res = Res.XAtMinObjective;
         x = x_res{:,:};
         
@@ -132,13 +143,12 @@ for i = 1:length(Accept_rate)
     saveas(figure(2),folder+"V_cloud.fig")
     saveas(figure(3),folder+"V_shp.fig")
     saveas(figure(4),folder+"V_patch.fig")
-    save(folder+"ResBayesOpt","Res")
+    save(folder+"ResOpt","Res")
 end
 
 end
 
 function [Cost] = costFunction(x,solver,Robots,Indexes,acceptRate,Npnts_WS,plot_en)
-
 if solver == "BayesOpt"
     x = x{:,:};
     Cost = getCostFunction(x,Robots,Indexes,acceptRate,Npnts_WS,plot_en);

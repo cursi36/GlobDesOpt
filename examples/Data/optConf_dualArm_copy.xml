@@ -1,8 +1,14 @@
 <optDesConf
-    solver="ga"> <!-- ga, pso, BayesOpt -->
+    solver="ga"
+Accept_rate="0.6"
+MaxIter="10"
+Npnts_WS="150*1e03"
+popSize="10"
+NumSeed_BO="1000"
+> 
     
     <Robot1 nj="5" origin="[0 0 0]" rpy="[0 0 0]">
-        <DH_tab_path name="DH_tab_DualArm_copy" /> 
+        <DH_tab_path name="DH_tab_DualArm_Copy.txt" /> 
         <joints 
             types="prrrr"
             l_bounds="[0 -45 -45 -45 -45]"
@@ -28,9 +34,9 @@
     
     <dual_arm
         copy="true" 
-        dist_idx=""
-        l_bounds =""
-        u_bounds = ""
+        dist_idx="[1]"
+        l_bounds ="[0]"
+        u_bounds = "[25]"
         />
         
     <Robot2 nj="3" origin="[5 0 0]" rpy="[0 0 0]"/>

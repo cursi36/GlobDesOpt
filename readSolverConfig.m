@@ -106,8 +106,9 @@ if node.hasChildNodes
                 attributes = parseAttributes(node);
                 DH_tab_file = attributes.Value;
                 if ~isempty(DH_tab_file)
-                    File = load(DH_tab_file);
-                    DH_tab = File.DH_tab;
+%                     File = load(DH_tab_file);
+%                     DH_tab = File.DH_tab;
+                    DH_tab = readDHTable(DH_tab_file);
                 else
                     nj = Robot_infos{robot_idx}.nj;
                     DH_tab = zeros(nj,4);
@@ -216,4 +217,19 @@ if theNode.hasAttributes
         attributes(count).Value = char(attrib.getValue);
     end
 end
+end
+
+function DH_tab = readDHTable(file)
+
+    fileID = fopen(file,'r');
+    
+    data = fscanf(fileID,[ '%f']);
+    fclose(fileID);
+    
+    n_cols = 4;
+    n = floor(length(data)/n_cols);
+    
+    DH_tab = reshape(data(1:n_cols*n),[n_cols n])';
+    
+    
 end

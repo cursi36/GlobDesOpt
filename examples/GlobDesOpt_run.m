@@ -15,9 +15,11 @@ addpath("Data/")
 % configFile = "Data/optConf_dualArm.xml"; %DualArm opt
 % configFile = "Data/optConf_singleArm.xml"; %SingleArm opt
 % configFile = "Data/optConf_dualArm_copy.xml"; %DualArm copy opt
-configFile = "Data/optConf_dualArm_test.xml"; %DualArm copy opt
+% configFile = "Data/optConf_dualArm_test.xml"; %DualArm copy opt
+configFile = "Data/optConf_DualArm_Copy_Run.xml"; %DualArm copy opt
 [solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig(configFile);
 
+parallel = false;
 
 for i = 1:length(Robot_infos)
     DH_tabs{i} = Robot_infos{i}.DH_tab;
@@ -86,7 +88,9 @@ for i = 1:length(Accept_rate)
         end
         n_pop = popSize;
         
-        parpool;
+        if parallel
+            parpool;
+        end
         options = optimoptions('ga','Display', 'iter','UseVectorized',true,'PopulationSize',n_pop,...
             'UseParallel', true,'PlotFcn','gaplotbestf','CrossOverFcn',{'crossoverheuristic',1.2});
         options.InitialPopulationMatrix = []; %%rows = up to pop size; cols = numb of variables
@@ -96,7 +100,10 @@ for i = 1:length(Accept_rate)
         
         [x,fval,exitflag,Res,population,scores] = ga(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,A,b,Aeq,beq,lb,ub,nonlcon,IntCon,options);
-        delete(gcp);
+        
+        if parallel
+            delete(gcp);
+        end
         
         %%%%%%%%%%%PSO ALGORITHM%%%%%%%%%%%%
     elseif solver.name =="pso"
@@ -108,14 +115,20 @@ for i = 1:length(Accept_rate)
         end
         
         SwarmSize = popSize;
-        parpool;
+        
+        if parallel
+            parpool;
+        end
+        
         options = optimoptions('particleswarm','SwarmSize',SwarmSize,...
             'Display', 'iter','MaxIterations',MaxIter,'MaxStallIterations',10, 'PlotFcn','pswplotbestf',...
             'UseParallel',true,'UseVectorized', true);
         
         [x,fval,exitflag,Res] = particleswarm(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,lb,ub,options);
-        delete(gcp);
+        if parallel
+            delete(gcp);
+        end
         
         %%%%%BAYESIAN OPTIMIZATION%%%%%%%%%%%%%
     elseif solver.name == "BayesOpt"
@@ -123,7 +136,7 @@ for i = 1:length(Accept_rate)
             optVars,'Verbose',0,...
             'IsObjectiveDeterministic',true,'AcquisitionFunctionName','expected-improvement-per-second-plus',...
             'ExplorationRatio',0.6,...
-            'MaxObjectiveEvaluations',MaxIter,'NumSeedPoints',NumSeed_BO,'UseParallel',true);
+            'MaxObjectiveEvaluations',MaxIter,'NumSeedPoints',NumSeed_BO,'UseParallel',parallel);
         x_res = Res.XAtMinObjective;
         x = x_res{:,:};
         
@@ -135,7 +148,7 @@ for i = 1:length(Accept_rate)
     
     [dtsPs,Vs,SafetyMeasure] = getWSVolumes(Robots,dual_arm_copy,accept_rate,Npnts_WS,true);
     
-        folder_base = "Results_Matlab_1/";
+    folder_base = "Results_Matlab_1/";
     folder = folder_base+"accept_"+num2str(accept_rate*100)+"/";
     mkdir (folder);
     
@@ -144,6 +157,7 @@ for i = 1:length(Accept_rate)
     saveas(figure(3),folder+"V_shp.fig")
     saveas(figure(4),folder+"V_patch.fig")
     save(folder+"ResOpt","Res")
+    save(folder+"ParamsOpt","x")
 end
 
 end

@@ -1,6 +1,8 @@
 %sizes in mm;V in mm^3
 function [dtsPs,shps,Vs,reaches] = generateWS(Robots,dual_arm_copy,Npnts,acceptRate,plot_en)
 
+disp("Generating WS ")
+
 excite_freq_vect = 0:2:8;
 
 if dual_arm_copy == true

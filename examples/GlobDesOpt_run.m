@@ -19,7 +19,7 @@ addpath("Data/")
 configFile = "Data/optConf_DualArm_Copy_Run.xml"; %DualArm copy opt
 [solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig(configFile);
 
-parallel = false;
+parallel = true;
 
 for i = 1:length(Robot_infos)
     DH_tabs{i} = Robot_infos{i}.DH_tab;
@@ -66,6 +66,8 @@ end
 for i = 1:length(Accept_rate)
     close all;
     
+    tic;
+    
     accept_rate = Accept_rate(i);
     disp("*******RUNNING")
     
@@ -88,11 +90,11 @@ for i = 1:length(Accept_rate)
         end
         n_pop = popSize;
         
-        if parallel
+        if parallel == true
             parpool;
         end
         options = optimoptions('ga','Display', 'iter','UseVectorized',true,'PopulationSize',n_pop,...
-            'UseParallel', true,'PlotFcn','gaplotbestf','CrossOverFcn',{'crossoverheuristic',1.2});
+            'UseParallel', parallel,'PlotFcn','gaplotbestf','CrossOverFcn',{'crossoverheuristic',1.2});
         options.InitialPopulationMatrix = []; %%rows = up to pop size; cols = numb of variables
         options.MaxGenerations = MaxIter;
         options.MaxStallGenerations = 10;
@@ -101,7 +103,7 @@ for i = 1:length(Accept_rate)
         [x,fval,exitflag,Res,population,scores] = ga(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,A,b,Aeq,beq,lb,ub,nonlcon,IntCon,options);
         
-        if parallel
+        if parallel == true
             delete(gcp);
         end
         
@@ -116,17 +118,17 @@ for i = 1:length(Accept_rate)
         
         SwarmSize = popSize;
         
-        if parallel
+        if parallel == true
             parpool;
         end
         
         options = optimoptions('particleswarm','SwarmSize',SwarmSize,...
             'Display', 'iter','MaxIterations',MaxIter,'MaxStallIterations',10, 'PlotFcn','pswplotbestf',...
-            'UseParallel',true,'UseVectorized', true);
+            'UseParallel',parallel,'UseVectorized', true);
         
         [x,fval,exitflag,Res] = particleswarm(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
             nvars,lb,ub,options);
-        if parallel
+        if parallel == true
             delete(gcp);
         end
         
@@ -142,22 +144,26 @@ for i = 1:length(Accept_rate)
         
     end
     
+    disp("total elapsed time (s) "+num2str(toc))
+    
     %plot results:
     Robots = generateRobots(x,Robots,Indexes);
     dual_arm_copy = Indexes{1}.dual_arm_copy;
     
     [dtsPs,Vs,SafetyMeasure] = getWSVolumes(Robots,dual_arm_copy,accept_rate,Npnts_WS,true);
     
-    folder_base = "Results_Matlab_1/";
+    folder_base = "Results_Matlab_"+solver.name+"/";
     folder = folder_base+"accept_"+num2str(accept_rate*100)+"/";
     mkdir (folder);
     
-    
+    saveas(figure(1),folder+"cost_iter.fig")
     saveas(figure(2),folder+"V_cloud.fig")
     saveas(figure(3),folder+"V_shp.fig")
     saveas(figure(4),folder+"V_patch.fig")
+    saveas(figure(5),folder+"Robots.fig")
     save(folder+"ResOpt","Res")
     save(folder+"ParamsOpt","x")
+    save(folder+"Robots","Robots")
 end
 
 end

@@ -3,7 +3,8 @@
 %robot;
 %- joint_types: cell array of joint types defined as 'p' = prismatic; 'r' =
 %revolute
-%- joint_limits: cell array of joint limis defined as [min max]
+%- joint_limits: cell array of joint limis defined as [min max] (in
+%radiants)
 %- T_inits: cell array of 4x4 base poses
 %- dual_arm_copy: if true, generates two arms with same parameters
 %- returns: cell array of Robot_calss
@@ -21,7 +22,7 @@ if dual_arm_copy == true
     Robots{1} = Robot_class(DH_tab,type, T_init);
     f = find(type == 'r');
     Robots{1}.m_joint_limits = joint_limits{1};
-    Robots{1}.m_joint_limits(f,:) = Robots{1}.m_joint_limits(f,:)*pi/180;
+    Robots{1}.m_joint_limits(f,:) = Robots{1}.m_joint_limits(f,:);
     
     %Second robot
     Robots{2} = Robots{1};
@@ -38,7 +39,7 @@ else
         
         Robots{i} = Robot_class(DH_tab,type, T_init);
         Robots{i}.m_joint_limits = joint_limits{i};
-        Robots{i}.m_joint_limits(f,:) = Robots{i}.m_joint_limits(f,:)*pi/180;
+        Robots{i}.m_joint_limits(f,:) = Robots{i}.m_joint_limits(f,:);
     end
 end
 

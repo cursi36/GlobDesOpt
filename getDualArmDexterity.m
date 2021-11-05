@@ -15,7 +15,12 @@ for i = 1:size(V1,2)
     v1 = V1(:,i);
     
     %elongation along axis v to reach ellipse 2
-k = sqrt(inv(v1'*inv(H2)*v1));
+    k = pinv(v1'*pinv(H2)*v1);
+    
+%     if k < 0
+%         disp("error in dext")
+%     end
+k = real(sqrt(k));
 
 if k < ax_length1(i)
   ax_intersect(i) = k;

@@ -1,16 +1,14 @@
 <optDesConf
-    solver="ga"
+    solver="BayesOpt"
 Accept_rate="0.6"
 MaxIter="100"
 Npnts_WS="50*1e03"
 popSize="50"
 NumSeed_BO="1000"
-cost_fcn = "MaxDualDext"
-> <!--solver is ga,pso,BayesOpt--><!--cost is MaxDualDext or MaxDextVolume -->
-
+> 
     
     <Robot1 nj="4" origin="[0 0 0]" rpy="[0 0 0]">
-        <DH_tab_path name="DH_tab_DualArm_COpy_Run.txt" /> 
+        <DH_tab_path name="DH_tab_SingleArm_Run.txt" /> 
         <joints 
             types="prrr"
             l_bounds="[0 -45 -45 -45]"
@@ -35,13 +33,11 @@ cost_fcn = "MaxDualDext"
     </Robot1>
     
     <dual_arm
-        copy="true" 
-        dist_idx="[1 2]"
-        l_bounds ="[0 0]"
-        u_bounds = "[15 15]"
+        copy="false" 
+        dist_idx=""
+        l_bounds =""
+        u_bounds = ""
         />
         
-    <!-- Robot 2 only set its initial pose -->
-    <Robot2 nj="4" origin="[5 0 0]" rpy="[0 0 0]"/>
     
 </optDesConf>

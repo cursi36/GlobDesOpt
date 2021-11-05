@@ -52,12 +52,13 @@ if node.hasChildNodes
             case "optDesConf"
                 attributes = parseAttributes(node);
                 %                 solver = attributes.Value;
-                solver.name = attributes(6).Value;
                 solver.acceptRate = str2num(attributes(1).Value);
                 solver.MaxIter = str2num(attributes(2).Value);
                 solver.Npnts_WS = str2num(attributes(3).Value);
-                solver.popSize = str2num(attributes(5).Value);
                 solver.NumSeed_BO = str2num(attributes(4).Value);
+                solver.cost_fcn = attributes(5).Value;
+                solver.popSize = str2num(attributes(6).Value);
+                solver.name = attributes(7).Value;
                 
             case "Robot1"
                 robot_idx = 1;

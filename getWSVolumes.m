@@ -1,8 +1,10 @@
-function [dtsPs,shps,Vs,Safety] = getWSVolumes(Robots,dual_arm_copy,acceptRate,Npnts_WS,plot_en)
+function [dtsPs,shps,Vs,Safety,ave_dext] = getWSVolumes(Robots,dual_arm_copy,acceptRate,Npnts_WS,cost_fcn,plot_en)
 
-
-% [dtsPs,shps,Vs,reaches] = generateWS(Robots,dual_arm_copy,Npnts_WS,acceptRate,plot_en);
-[dtsPs,shps,Vs,reaches] = generateWSRandom(Robots,dual_arm_copy,Npnts_WS,acceptRate,plot_en);
+if (cost_fcn == "MaxDextVolume")
+[dtsPs,shps,Vs,reaches,ave_dext] = generateWSRandom(Robots,dual_arm_copy,Npnts_WS,acceptRate,plot_en);
+elseif (cost_fcn == "MaxDualDext")
+[dtsPs,shps,Vs,reaches,ave_dext] = generateWS_DualDext(Robots,dual_arm_copy,Npnts_WS,acceptRate,plot_en);
+end
 
 Safety = 1;
 if length(Robots) > 1

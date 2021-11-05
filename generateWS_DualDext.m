@@ -1,6 +1,4 @@
-%sizes in mm;V in mm^3
-function [dtsPs,shps,Vs,reaches,ave_dext] = generateWSRandom(Robots,dual_arm_copy,Npnts,acceptRate,plot_en)
-
+function [dtsPs,shps,Vs,reaches,ave_dext] = generateWS_DualDext(Robots,dual_arm_copy,Npnts,acceptRate,plot_en)
 disp("Generating WS ")
 rng(42);
 
@@ -16,12 +14,16 @@ else
     end
 end
 
+
 for n_rob = 1:N_Robots
     
     nj = Robots{n_rob}.m_n_jnts;
     
     Mr_i = zeros(Npnts,1);
     P_i = zeros(3,Npnts);
+    
+    n_cart = min(6,nj);
+    J_i = zeros(n_cart,nj,Npnts);
     
     iter = 1;
     
@@ -37,6 +39,8 @@ for n_rob = 1:N_Robots
         
         [Pose,J] = Robots{n_rob}.getFwdKine(qn,"ee");
         
+        J_i (:,:,iter) = J(1:n_cart,:);
+        
         sigma = svd(J*J');
         d = prod(sigma);
         Mr_i(iter,1) = (d)^(1/size(J,1));
@@ -51,6 +55,7 @@ for n_rob = 1:N_Robots
     
     P{n_rob} = P_i;
     Mr{n_rob} = Mr_i;
+    J_iter{n_rob} = J_i;
     
     %     P_base = Robots{n_rob}.m_T_init(1:3,1:3)'*P_i-Robots{n_rob}.m_T_init(1:3,4); %distance from base
     
@@ -63,9 +68,11 @@ for n_rob = 1:N_Robots
     end
 end
 
+
 if dual_arm_copy == true
     P{2} = Robots{2}.m_T_init(1:3,1:3)*P{1}+Robots{2}.m_T_init(1:3,4);
     Mr{2} = Mr{1};
+    J_iter{2} = J_iter{1};
     
     reaches(2) = reaches(1);
 end
@@ -83,7 +90,8 @@ for i = 1:N_robots
 end
 
 if N_robots > 1
-    [shps,Vs,dtsPs{3}] = getIntersectionVolume(dtsPs{1},dtsPs{2});
+%     [shps,Vs,dtsPs{3}] = getIntersectionVolume(dtsPs{1},dtsPs{2});
+    [shps,Vs,dtsPs{3},Idx_common] = getIntersectionVolumeIndexes(dtsPs{1},dtsPs{2});
 else
     dtsP = dtsPs{1};
     shps{1} = alphaShape(dtsP(:,1),dtsP(:,2),dtsP(:,3));
@@ -91,7 +99,44 @@ else
     
 end
 
-ave_dext = 1;
+if N_robots > 1
+% compute dueal arm dext only for some random common points
+dext_dual = 0;
+dext_max = 0;
+ave_dext = 0;
+if isempty(Idx_common{1}) == 0 && isempty(Idx_common{2}) == 0
+    
+    N_pnts_dual = min(10^6,0.4*length(Idx_common{1}));
+    N_pnts_dual = floor(sqrt(N_pnts_dual));
+    
+    l1 = randperm(length(Idx_common{1}),N_pnts_dual);
+    l2 = randperm(length(Idx_common{2}),N_pnts_dual);
+    
+    Idx_common{1} = Idx_common{1}(l1);
+    Idx_common{2} = Idx_common{2}(l2);
+    
+    Js_1 = J_iter{1}(:,:,Idx_common{1});
+    Js_2 = J_iter{2}(:,:,Idx_common{2});
+    
+    for i = 1:N_pnts_dual
+        
+        for j = 1:N_pnts_dual
+            [~,dext] = getDualArmDexterity(Js_1(:,:,i),Js_2(:,:,j));
+            dext_max = max(dext,dext_max);
+        end
+        
+        dext_dual = dext_dual+dext_max;
+    end
+    
+    ave_dext = dext_dual/size(Js_1,3);
+    
+end
+
+else
+    
+   ave_dext = 1;
+   
+end
 
 
 % disp("WS Volume "+num2str(V)+" Elapsed "+num2str(t_el))

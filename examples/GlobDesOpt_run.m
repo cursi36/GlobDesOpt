@@ -12,11 +12,8 @@ addpath('../')
 addpath("Data/")
 
 %% Initializations
-% configFile = "Data/optConf_dualArm.xml"; %DualArm opt
-% configFile = "Data/optConf_singleArm.xml"; %SingleArm opt
-% configFile = "Data/optConf_dualArm_copy.xml"; %DualArm copy opt
-% configFile = "Data/optConf_dualArm_test.xml"; %DualArm copy opt
 configFile = "Data/optConf_DualArm_Copy_Run.xml"; %DualArm copy opt
+% configFile = "Data/optConf_SingleArm_Run.xml"; %DualArm copy opt
 [solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig(configFile);
 
 parallel = true;
@@ -55,6 +52,7 @@ MaxIter = solver.MaxIter;
 Npnts_WS = solver.Npnts_WS; %number of points for WS computation
 popSize = solver.popSize;
 NumSeed_BO = solver.NumSeed_BO;
+cost_fcn = solver.cost_fcn;
 
 disp("******SOLVER Info: "+solver.name+"; MaxIter: "+num2str(MaxIter)+"; N points WS: "+num2str(Npnts_WS)+"; Accept Rate: "+num2str(Accept_rate))
 if solver.name == "BayesOpt"
@@ -100,7 +98,7 @@ for i = 1:length(Accept_rate)
         options.MaxStallGenerations = 10;
         options.EliteCount = floor(0.2*n_pop);
         
-        [x,fval,exitflag,Res,population,scores] = ga(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
+        [x,fval,exitflag,Res,population,scores] = ga(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,cost_fcn,false),...
             nvars,A,b,Aeq,beq,lb,ub,nonlcon,IntCon,options);
         
         if parallel == true
@@ -126,7 +124,7 @@ for i = 1:length(Accept_rate)
             'Display', 'iter','MaxIterations',MaxIter,'MaxStallIterations',10, 'PlotFcn','pswplotbestf',...
             'UseParallel',parallel,'UseVectorized', true);
         
-        [x,fval,exitflag,Res] = particleswarm(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
+        [x,fval,exitflag,Res] = particleswarm(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,cost_fcn,false),...
             nvars,lb,ub,options);
         if parallel == true
             delete(gcp);
@@ -134,7 +132,7 @@ for i = 1:length(Accept_rate)
         
         %%%%%BAYESIAN OPTIMIZATION%%%%%%%%%%%%%
     elseif solver.name == "BayesOpt"
-        Res = bayesopt(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,false),...
+        Res = bayesopt(@(x)costFunction(x,solver.name,Robots,Indexes,accept_rate,Npnts_WS,cost_fcn,false),...
             optVars,'Verbose',0,...
             'IsObjectiveDeterministic',true,'AcquisitionFunctionName','expected-improvement-per-second-plus',...
             'ExplorationRatio',0.6,...
@@ -144,18 +142,21 @@ for i = 1:length(Accept_rate)
         
     end
     
+    elapsed = toc;
     disp("total elapsed time (s) "+num2str(toc))
     
     %plot results:
     Robots = generateRobots(x,Robots,Indexes);
     dual_arm_copy = Indexes{1}.dual_arm_copy;
     
-    [dtsPs,Vs,SafetyMeasure] = getWSVolumes(Robots,dual_arm_copy,accept_rate,Npnts_WS,true);
+%     [dtsPs,shps,Vs,Safety] = getWSVolumes(Robots,dual_arm_copy,accept_rate,Npnts_WS,true);
+    [dtsPs,shps,Vs,Safety,ave_dext] = getWSVolumes(Robots,dual_arm_copy,accept_rate,Npnts_WS,cost_fcn,true);
     
     folder_base = "Results_Matlab_"+solver.name+"/";
     folder = folder_base+"accept_"+num2str(accept_rate*100)+"/";
     mkdir (folder);
     
+    save(folder+"elapsed","elapsed")
     saveas(figure(1),folder+"cost_iter.fig")
     saveas(figure(2),folder+"V_cloud.fig")
     saveas(figure(3),folder+"V_shp.fig")
@@ -168,10 +169,10 @@ end
 
 end
 
-function [Cost] = costFunction(x,solver,Robots,Indexes,acceptRate,Npnts_WS,plot_en)
+function [Cost] = costFunction(x,solver,Robots,Indexes,acceptRate,Npnts_WS,cost_fcn,plot_en)
 if solver == "BayesOpt"
     x = x{:,:};
-    Cost = getCostFunction(x,Robots,Indexes,acceptRate,Npnts_WS,plot_en);
+    Cost = getCostFunction(x,Robots,Indexes,acceptRate,Npnts_WS,cost_fcn,plot_en);
 else
     x = round(x);
     
@@ -182,7 +183,7 @@ else
     
     parfor n_pop = 1:N_pop
         xi = x(n_pop,:);
-        Cost(n_pop) = getCostFunction(xi,Robots_init,Indexes,acceptRate,Npnts_WS,plot_en);
+        Cost(n_pop) = getCostFunction(xi,Robots_init,Indexes,acceptRate,Npnts_WS,cost_fcn,plot_en);
     end
 end
 

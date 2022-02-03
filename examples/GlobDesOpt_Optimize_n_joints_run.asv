@@ -1,6 +1,6 @@
 % Example to optimize for design of two dual arms with different
 % structures
-function GlobDesOpt_run
+function GlobDesOpt_Optimize_n_joints_run
 clear all;
 close all;
 clc;
@@ -12,9 +12,12 @@ addpath('../')
 addpath("Data/")
 
 %% Initializations
-configFile = "Data/optConf_DualArm_Copy_Run.xml"; %DualArm copy opt
-% configFile = "Data/optConf_SingleArm_Run.xml"; %DualArm copy opt
-[solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig(configFile);
+configFile = "Data/optConf_DualArm_Copy_n_joints_Run.xml"; %DualArm copy opt
+% configFile = "Data/optConf_SingleArm_n_joints_Run.xml"; %DualArm copy opt
+
+
+
+[solver,Robot_infos,dual_arm_copy,JointType_optInfos,LinkLength_optInfos,Distance_optInfo] = readSolverConfig_Optimize_n_joints(configFile,10);
 
 parallel = true; %parallel computation
 

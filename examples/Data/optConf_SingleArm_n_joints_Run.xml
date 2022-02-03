@@ -1,0 +1,46 @@
+<optDesConf
+solver="ga"
+Accept_rate="0.6"
+MaxIter="1000"
+Npnts_WS="50*1e03"
+popSize="50"
+NumSeed_BO="1000"
+cost_fcn = "MaxDextVolume"
+> <!--solver is ga,pso,BayesOpt--><!--cost is MaxDualDext or MaxDextVolume -->
+    
+    <!-- nj set to empty as automatically initialized. Joint types initialized to all revolute -->
+    <Robot1 nj="" origin="[0 0 0]" rpy="[0 0 0]">
+        <DH_tab_path name="" /> 
+        <joints 
+            types=""
+            l_bounds=""
+            u_bounds=""/>
+        <!-- Set the possible limits for d,theta,a,alpha. They will be the repeated for each link -->
+        <d_idx idx=""
+               l_bounds="[3]"
+               u_bounds="[25]"/>
+        <theta_idx idx=""        
+                   l_bounds="[-180]"
+                   u_bounds="[180]"/>
+        <a_idx idx=""         
+               l_bounds="[3]"
+               u_bounds="[25]"/>
+        <alpha_idx idx=""         
+                   l_bounds="[-180]"
+                   u_bounds="[180]"/>
+        <!-- joints to optimize. it will be set to all joints. The imits will be repeated for each joint-->
+        <jnt_idx idx=""  
+                 l_p_bounds="[0]"
+                 u_p_bounds="[10]"
+                 l_r_bounds="[-45]"
+                 u_r_bounds="[45]"/>
+    </Robot1>
+    
+    <dual_arm
+        copy="false" 
+        dist_idx=""
+        l_bounds =""
+        u_bounds = ""
+        />
+        
+</optDesConf>

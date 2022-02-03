@@ -1,5 +1,12 @@
 <optDesConf
-    solver="ga"> 
+solver="ga"
+Accept_rate="0.6"
+MaxIter="100"
+Npnts_WS="50*1e03"
+popSize="50"
+NumSeed_BO="1000"
+cost_fcn = "MaxDualDext"
+> <!--solver is ga,pso,BayesOpt--><!--cost is MaxDualDext or MaxDextVolume -->
     
     <Robot1 nj="5" origin="[0 0 0]" rpy="[0 0 0]">
         <DH_tab_path name="" /> <!-- optimize for whole robot.  it can be empty-->

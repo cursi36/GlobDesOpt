@@ -5,7 +5,8 @@ MaxIter="100"
 Npnts_WS="50*1e03"
 popSize="50"
 NumSeed_BO="1000"
-> 
+cost_fcn = "MaxDextVolume"
+>
     
     <Robot1 nj="4" origin="[0 0 0]" rpy="[0 0 0]">
         <DH_tab_path name="DH_tab_SingleArm_Run.txt" /> 

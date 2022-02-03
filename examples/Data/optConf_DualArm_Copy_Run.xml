@@ -1,5 +1,5 @@
 <optDesConf
-    solver="ga"
+solver="ga"
 Accept_rate="0.6"
 MaxIter="100"
 Npnts_WS="50*1e03"
@@ -8,25 +8,31 @@ NumSeed_BO="1000"
 cost_fcn = "MaxDualDext"
 > <!--solver is ga,pso,BayesOpt--><!--cost is MaxDualDext or MaxDextVolume -->
 
-    
+    <!-- Robot initialization -->
     <Robot1 nj="4" origin="[0 0 0]" rpy="[0 0 0]">
-        <DH_tab_path name="DH_tab_DualArm_COpy_Run.txt" /> 
+        <DH_tab_path name="DH_tab_DualArm_Copy_Run.txt" /> 
+        <!-- joints initialization -->
         <joints 
             types="prrr"
             l_bounds="[0 -45 -45 -45]"
             u_bounds="[10 45 45 45]"/>
+        <!-- Select d indexes to optimize and their bounds -->
         <d_idx idx="[1]"
                l_bounds="[0]"
                u_bounds="[10]"/>
+       <!-- Select theta indexes to optimize and their bounds (in degrees) -->
         <theta_idx idx=""        
                    l_bounds=""
                    u_bounds=""/>
+       <!-- Select a indexes to optimize and their bounds -->
         <a_idx idx="[2]"         
                l_bounds="[3]"
                u_bounds="[25]"/>
+       <!-- Select alpha indexes to optimize and their bounds (in degrees) -->
         <alpha_idx idx=""         
                    l_bounds=""
                    u_bounds=""/>
+       <!-- Select joint type indexes to optimize and their bounds in case they are prismatic or revolute(in degrees) -->
         <jnt_idx idx="[1 4]"         
                  l_p_bounds="[0 0]"
                  u_p_bounds="[10 10]"
@@ -34,6 +40,8 @@ cost_fcn = "MaxDualDext"
                  u_r_bounds="[45 45]"/>
     </Robot1>
     
+    <!-- Select if the other orm is a copy of robot 1 -->
+    <!-- Select indexes of distance to optimize for (x,y,z) and the possible limits -->
     <dual_arm
         copy="true" 
         dist_idx="[1 2]"

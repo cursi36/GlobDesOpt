@@ -277,9 +277,38 @@ if plot_en == true
     box on
     grid on
     
+    figure(6)
+    clf
+    legend_str = [];
+    sgtitle("Dext and reach WS")
+    for n_shps = 1:length(shps)
+        if isempty(shps{n_shps}.Points) == 0
+            p = ps{n_shps};
+            p = patch('Faces',p.Faces,'Vertices',p.Vertices);
+            p.FaceColor = Colors(n_shps,:);
+            p.EdgeColor = 'none';
+            p.FaceAlpha = fAlphas(n_shps);
+        end
+        daspect([1 1 1])
+        view(3);
+        axis tight
+        camlight
+        lighting gouraud
+        if n_shps < 3
+            legend_str = [legend_str;{"WS Robot "+num2str(n_shps)}];
+        end
+    end
+    xlabel("x")
+    ylabel("y")
+    zlabel("z")
+    legend(legend_str)
+    view(3)
+    box on
+    grid on
+    
     % add ful WS plot
     fAlphas_full = [0.1 0.1];
-    figure(5)
+    figure(6)
     hold on
     for n_shps = 1:length(shp_full)
         [bf,vert] = boundaryFacets(shp_full{n_shps});

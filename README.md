@@ -3,6 +3,8 @@
 ## Description:
 
 GlobDesOpt is a framework to automate robot design, based on different Global Optimization methods.
+You can find more about this work at *https://ieeexplore.ieee.org/document/9674897*.
+
 The purpose is to facilitate the process of finding optimal design parameters for robots.
 The user can choose between three different solvers:
 - Genetic Algorithm (GA);

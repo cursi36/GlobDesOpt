@@ -34,6 +34,10 @@ and may lead to high risk of collisions between the two arms.
 
 ## Files
 
+You can test the framework by running `examples/GlobDesOpt_run.m`.
+In this case, the optimization reads the configuration file in `examples/Data` and finds the optimal specified parameters.
+
+When running `examples/GlobDesOpt_Optimize_n_joints_run.m`, the optimization reads the configuration file in `examples/Data` and adds an additional search to identify the optimal number of joints.
 
 
 
